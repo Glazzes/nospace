@@ -1,0 +1,28 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 25MB
+  mail:
+    host: smtp.mailtrap.io
+    port: 465
+    username: 1f4c14d004808c
+    password: 34a7bbfe76e6e2
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:postgresql://localhost:5432/nospace
+    driver-class-name: org.postgresql.Driver
+    username: glaze
+
+server:
+  servlet:
+    context-path: /api
+
+jwt:
+  properties:
+    expiration-in-days: 2
+    prefix: Bearer
+    secret-key: SomeSuperSecretKeyImpossibleToGuessByAnyoneInThisEntireUniverseSomeSuperSecretKeyImpossibleToGuessByAnyoneInThisEntireUniverseSomeSuperSecretKeyImpossibleToGuessByAnyoneInThisEntireUniverseSomeSuperSecretKeyImpossibleToGuessByAnyoneInThisEntireUniverse
