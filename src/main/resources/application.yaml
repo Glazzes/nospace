@@ -17,6 +17,9 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: glaze
 
+drive:
+  base-path: /home/glaze/go/
+
 server:
   servlet:
     context-path: /api
