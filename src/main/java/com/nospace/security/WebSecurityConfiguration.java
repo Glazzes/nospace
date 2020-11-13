@@ -1,11 +1,14 @@
  package com.nospace.security;
 
+import com.nospace.security.jwt.JwtAuthenticationFilter;
 import com.nospace.security.jwt.JwtProvider;
+import com.nospace.security.jwt.JwtRequestFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,14 +36,20 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.cors().and().csrf().disable()
             .authorizeRequests()
             .antMatchers(HttpMethod.POST, "/login").permitAll()
-            .antMatchers("/account/**").permitAll()
             .antMatchers("/auth/**").permitAll()
             .antMatchers("/file/**").permitAll()
             .antMatchers(HttpMethod.GET, "/imgs/**").permitAll()
             .anyRequest().authenticated();
 
         http
+            .addFilter(new JwtAuthenticationFilter(authenticationManager(), provider))
+            .addFilterAfter(new JwtRequestFilter(provider), JwtAuthenticationFilter.class)
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring().antMatchers(HttpMethod.POST,"/account/sign-up");
     }
 
     @Bean

@@ -2,16 +2,15 @@ package com.nospace.controller;
 
 import com.nospace.entities.User;
 import com.nospace.model.NewAccountRequest;
-import com.nospace.services.AccountService;
-import com.nospace.services.FileServiceImpl;
-import com.nospace.services.VerificationTokenService;
+import com.nospace.services.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.net.URI;
+import java.security.Principal;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/account")
@@ -21,25 +20,28 @@ public class AccountController {
     private final AccountService accountService;
     private final VerificationTokenService verificationTokenService;
     private final FileServiceImpl fileService;
+    private final UserService userService;
+
     public AccountController(
         AccountService accountService,
         VerificationTokenService verificationTokenService,
-        FileServiceImpl fileService
+        FileServiceImpl fileService,
+        UserService userService
     ) {
         this.accountService = accountService;
         this.verificationTokenService = verificationTokenService;
         this.fileService = fileService;
+        this.userService = userService;
     }
 
     @PostMapping(path = "/sign-up", produces = "application/json")
     public ResponseEntity<User> createNewAccount(@Valid @RequestBody NewAccountRequest newAccountRequest){
         User createdUser = accountService.createNewUserAccount(newAccountRequest);
-        URI newUserUrl = URI.create("http://localhost:8080/user/"+createdUser.getUsername());
-        return ResponseEntity.created(newUserUrl).body(createdUser);
+        return ResponseEntity.ok().body(createdUser);
     }
 
     @GetMapping(path = "/activate")
-    public ResponseEntity<?> activateNewAccount(@RequestParam(name = "token", required = true) String token){
+    public ResponseEntity<?> activateNewAccount(@RequestParam(name = "token") String token){
         accountService.enableNewUserAccount(token);
         return ResponseEntity.ok().build();
     }
@@ -54,6 +56,13 @@ public class AccountController {
         }catch (IOException e){
             throw new IllegalArgumentException("No picture under that name");
         }
+    }
+
+    @GetMapping(path = "/logged-user", produces = "application/json")
+    public ResponseEntity<User> getLoggedUser(Principal principal){
+        Optional<User> currentUser = userService.findByUsername(principal.getName());
+        return currentUser.map(cUser -> ResponseEntity.ok().body(cUser))
+                   .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }

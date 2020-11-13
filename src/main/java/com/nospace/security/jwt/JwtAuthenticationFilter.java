@@ -1,10 +1,8 @@
 package com.nospace.security.jwt;
-/*
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nospace.security.LoginRequest;
 import com.nospace.security.UserDetailsImpl;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -47,7 +45,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         UserDetailsImpl user = (UserDetailsImpl) authResult.getPrincipal();
-
         Cookie authorizationTokenCookie = provider.generateCookieToken(user, CookieType.AUTHORIZATION_TOKEN);
         Cookie refreshTokenCookie = provider.generateCookieToken(user, CookieType.REFRESH_TOKEN);
 
@@ -55,5 +52,3 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.addCookie(refreshTokenCookie);
     }
 }
-
-*/

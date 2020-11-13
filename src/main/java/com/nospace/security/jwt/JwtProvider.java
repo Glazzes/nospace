@@ -1,6 +1,7 @@
 package com.nospace.security.jwt;
 
 import com.nospace.entities.User;
+import com.nospace.security.SecurityCipher;
 import com.nospace.security.UserDetailsImpl;
 import com.nospace.services.UserService;
 import io.jsonwebtoken.Claims;
@@ -42,7 +43,7 @@ public class JwtProvider {
 
         Cookie cookie = new Cookie(type.getCookieName(), token);
         cookie.setMaxAge(type.getExpirationTimeInSeconds());
-        // cookie.setHttpOnly(true);
+        cookie.setHttpOnly(true);
 
         return cookie;
     }
@@ -70,6 +71,20 @@ public class JwtProvider {
             .filter(c-> c.getName().equals(cookieName))
             .map(Cookie::getValue)
             .collect(Collectors.joining());
+    }
+
+    public boolean validateToken(String token){
+        try{
+            Jwts.parserBuilder()
+                .setSigningKey(Keys.hmacShaKeyFor(properties.getSecretKey().getBytes()))
+                .build().parseClaimsJws(token);
+
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
 }

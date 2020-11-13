@@ -1,4 +1,3 @@
-/*
 package com.nospace.security.jwt;
 
 import com.google.common.base.Strings;
@@ -28,23 +27,22 @@ public class JwtRequestFilter extends OncePerRequestFilter{
         String authorizationToken = provider.getCookieValue(cookies, "Authorization");
         String refreshToken = provider.getCookieValue(cookies, "Refresh");
 
-        if(Strings.isNullOrEmpty(authorizationToken) && Strings.isNullOrEmpty(refreshToken)){
+        if(!provider.validateToken(refreshToken)){
             filterChain.doFilter(request, response);
             return;
         }
 
         UserDetailsImpl user = provider.getUserFromToken(refreshToken);
-        if(!Strings.isNullOrEmpty(refreshToken) && Strings.isNullOrEmpty(authorizationToken)){
-            Cookie authorizationCookie = provider.generateCookieToken(user, CookieType.AUTHORIZATION_TOKEN);
-            response.addCookie(authorizationCookie);
+        if(!provider.validateToken(authorizationToken) && provider.validateToken(refreshToken)){
+            Cookie authorizationTokenCookie = provider.generateCookieToken(user, CookieType.AUTHORIZATION_TOKEN);
+            response.addCookie(authorizationTokenCookie);
         }
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-            user.getUsername(), user.getPassword(), user.getAuthorities()
+            user.getUsername(), null, user.getAuthorities()
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);
     }
 }
- */

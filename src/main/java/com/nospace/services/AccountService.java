@@ -21,24 +21,29 @@ public class AccountService {
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final FolderService folderService;
 
     public AccountService(
             UserService userService,
             VerificationTokenService verificationTokenService,
             EmailService emailService,
-            BCryptPasswordEncoder passwordEncoder
+            BCryptPasswordEncoder passwordEncoder,
+            FolderService folderService
     ) {
         this.userService = userService;
         this.verificationTokenService = verificationTokenService;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
+        this.folderService = folderService;
     }
 
     private User saveNewUserToDatabase(NewAccountRequest newAccountRequest){
         String encodedPassword = encodePassword(newAccountRequest.getPassword());
+        String id = UUID.randomUUID().toString().replaceAll("-", "")
+            .substring(0, 11);
 
         User newUser = User.builder()
-                .id(UUID.randomUUID().toString().replaceAll("-", ""))
+                .id(id)
                 .username(newAccountRequest.getUsername())
                 .nickname(newAccountRequest.getUsername())
                 .password(encodedPassword)
@@ -63,6 +68,7 @@ public class AccountService {
     public User createNewUserAccount(NewAccountRequest newAccountRequest){
         User newUser = saveNewUserToDatabase(newAccountRequest);
         VerificationToken token = verificationTokenService.createNewVerificationToken(newUser);
+        folderService.saveFolder(newUser, "root");
 
         try{
             emailService.sendAccountVerificationEmail(token);

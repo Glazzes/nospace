@@ -21,21 +21,6 @@ public class TestController {
         return "Hello world";
     }
 
-    @GetMapping("/login")
-    public ResponseEntity<?> setCookies(HttpServletResponse response){
-        Cookie cc = new Cookie("Something", "someCookiOk");
-        cc.setMaxAge(3600);
-        cc.setHttpOnly(true);
-
-        Cookie nocc = new Cookie("NoHttpOnly", "someCookiOkIdk");
-        cc.setMaxAge(3600);
-
-        response.addCookie(cc);
-        response.addCookie(nocc);
-
-        return ResponseEntity.ok().build();
-    }
-
     @GetMapping("/cookie")
     public void printCookie(
         @CookieValue( name = "Something") String cookie,

@@ -1,28 +1,22 @@
 package com.nospace.entities;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 
 @Entity
-@Table(name = "files")
-@Builder
+@Table(name = "folders")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class File {
-
+@AllArgsConstructor
+public class Folder {
     @Id
     private String id;
-    private String filename;
-    private Long fileSize;
-    private LocalDate uploadedAt;
+    private String name;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn
-    private Folder storedIn;
+    private User owner;
 }
