@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -33,8 +34,8 @@ public class FileServiceImpl {
         this.userService = userService;
     }
 
-    private void fileUpload(MultipartFile file) throws IOException {
-        Path destinationRoute = Paths.get(DRIVE_FOLDER, file.getOriginalFilename());
+    private void fileUpload(MultipartFile file, String location) throws IOException {
+        Path destinationRoute = Paths.get(DRIVE_FOLDER, location,file.getOriginalFilename());
         file.transferTo(destinationRoute);
     }
 
@@ -62,7 +63,7 @@ public class FileServiceImpl {
     public void saveFilesToDisk(List<MultipartFile> files, String folderName, String username){
        files.forEach(file -> {
                try{
-                   fileUpload(file);
+                   fileUpload(file, folderName);
                    saveFileInfoToDb(file, folderName, username);
                }catch (IOException e){
                    throw new FileNotWrittenException("Files couldn't get saved to the server");
@@ -94,5 +95,15 @@ public class FileServiceImpl {
         }
 
         return null;
+    }
+
+    public long getUsedSpace(Principal principal){
+        Optional<User> user = userService.findByUsername(principal.getName());
+        Path userRootFolder = Paths.get(DRIVE_FOLDER, user.get().getId()+"-root");
+        try{
+            return Files.walk(userRootFolder).mapToLong(f -> f.toFile().length()).sum();
+        }catch (IOException e){
+            throw new IllegalStateException("Folders does not belong to any user");
+        }
     }
 }

@@ -24,10 +24,16 @@ public class FolderController {
     @PostMapping(path = "/new")
     public ResponseEntity<?> saveNewFolder(
         Principal principal,
-        @RequestParam(name = "folder") String folderName
+        @RequestParam(name = "name") String folderName,
+        @RequestParam(name = "current", required = false) String currentFolder
     ){
         Optional<User> owner = userService.findByUsername(principal.getName());
-        folderService.saveFolder(owner.get(), folderName);
+        String current = Optional.ofNullable(currentFolder)
+            .orElseGet(() -> owner.get().getId()+"-root/");
+
+        final String finalFolderName = String.format("%s%s/", current, folderName);
+        folderService.saveFolder(owner.get(), finalFolderName);
+        folderService.createNewPhysicalFolder(current, folderName);
         return ResponseEntity.ok().build();
     }
 

@@ -58,11 +58,16 @@ public class AccountController {
         }
     }
 
-    @GetMapping(path = "/logged-user", produces = "application/json")
+    @GetMapping(path = "/me", produces = "application/json")
     public ResponseEntity<User> getLoggedUser(Principal principal){
         Optional<User> currentUser = userService.findByUsername(principal.getName());
         return currentUser.map(cUser -> ResponseEntity.ok().body(cUser))
                    .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping(path = "used-space")
+    public ResponseEntity<Long> getUsedSpace(Principal principal){
+        return ResponseEntity.ok().body(fileService.getUsedSpace(principal));
     }
 
 }

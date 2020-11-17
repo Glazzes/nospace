@@ -68,7 +68,10 @@ public class AccountService {
     public User createNewUserAccount(NewAccountRequest newAccountRequest){
         User newUser = saveNewUserToDatabase(newAccountRequest);
         VerificationToken token = verificationTokenService.createNewVerificationToken(newUser);
-        folderService.saveFolder(newUser, "root");
+
+        String folderName = newUser.getId()+"-root/";
+        folderService.saveFolder(newUser, folderName);
+        folderService.createRootFolderForUser(folderName);
 
         try{
             emailService.sendAccountVerificationEmail(token);

@@ -28,20 +28,29 @@ public class FileController {
     @PostMapping(path = "/upload", consumes = "multipart/form-data")
     public ResponseEntity<?> multipleFileUpload(
         @RequestPart(name = "file") List<MultipartFile> files,
-        @RequestParam(name = "folder", defaultValue = "root") String folderId,
+        @RequestParam(name = "store", required = false) String folderPath,
         Principal principal
     )throws IOException {
-        fileService.saveFilesToDisk(files, folderId, principal.getName());
+        String folder = Optional.ofNullable(folderPath)
+            .orElseGet(() -> {
+                Optional<User> user = userService.findByUsername(principal.getName());
+                return user.get().getId()+"-root/";
+            });
+
+        fileService.saveFilesToDisk(files, folder, principal.getName());
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping(path = "/user-files")
+    @GetMapping(path = "/my-files")
     public ResponseEntity<List<File>> getUserFiles(
-        @RequestParam(name = "folder", defaultValue = "root") String folderName,
+        @RequestParam(name = "folder", required = false) String folderName,
         Principal principal
     ){
         Optional<User> user = userService.findByUsername(principal.getName());
-        List<File> files =  fileService.getUserFiles(folderName, user.get());
+        String folder = Optional.ofNullable(folderName)
+            .orElseGet(() -> user.get().getId()+"-root/");
+
+        List<File> files =  fileService.getUserFiles(folder, user.get());
         return ResponseEntity.ok().body(files);
     }
 
