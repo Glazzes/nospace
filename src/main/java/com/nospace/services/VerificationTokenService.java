@@ -1,6 +1,6 @@
 package com.nospace.services;
 
-import com.nospace.Repository.VerificationTokenRepository;
+import com.nospace.repository.VerificationTokenRepository;
 import com.nospace.entities.User;
 import com.nospace.entities.VerificationToken;
 import org.springframework.stereotype.Service;

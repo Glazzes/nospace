@@ -14,9 +14,11 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @EnableWebSecurity
 @Configuration
+@CrossOrigin("*")
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
@@ -35,6 +37,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable()
             .authorizeRequests()
+            .antMatchers(HttpMethod.POST, "/account/register").permitAll()
             .antMatchers(HttpMethod.POST, "/login").permitAll()
             .antMatchers("/auth/**").permitAll()
             .antMatchers("/file/**").permitAll()
@@ -49,7 +52,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers(HttpMethod.POST,"/account/sign-up");
+        web.ignoring().antMatchers("/account/profile-picture/**");
     }
 
     @Bean

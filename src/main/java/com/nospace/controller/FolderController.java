@@ -1,40 +1,48 @@
 package com.nospace.controller;
 
-import com.nospace.entities.User;
+import com.nospace.entities.Folder;
 import com.nospace.services.FolderService;
-import com.nospace.services.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/folder")
+@RequestMapping("/content")
 @CrossOrigin("*")
 public class FolderController {
     private final FolderService folderService;
-    private final UserService userService;
 
-    public FolderController(FolderService folderService, UserService userService) {
+    public FolderController(FolderService folderService) {
         this.folderService = folderService;
-        this.userService = userService;
     }
 
-    @PostMapping(path = "/new")
-    public ResponseEntity<?> saveNewFolder(
-        Principal principal,
-        @RequestParam(name = "name") String folderName,
-        @RequestParam(name = "current", required = false) String currentFolder
+    @GetMapping(path = "/my-content", produces = "application/json")
+    public ResponseEntity<Folder> getUserFolders(
+        @RequestParam(name = "depth") long depth,
+        @RequestParam(name = "name") String name,
+        Principal principal
     ){
-        Optional<User> owner = userService.findByUsername(principal.getName());
-        String current = Optional.ofNullable(currentFolder)
-            .orElseGet(() -> owner.get().getId()+"-root/");
+        Folder content = folderService.findByDepthAndNameAndOwner(depth, name, principal.getName());
+        return ResponseEntity.ok().body(content);
+    }
 
-        final String finalFolderName = String.format("%s%s/", current, folderName);
-        folderService.saveFolder(owner.get(), finalFolderName);
-        folderService.createNewPhysicalFolder(current, folderName);
-        return ResponseEntity.ok().build();
+    @PostMapping(path = "/new", produces = "application/json")
+    public ResponseEntity<Folder> createNewFolder(
+        @RequestParam(name = "baseId") String baseFolderId,
+        @RequestParam(name = "name") String newFolderName
+    ){
+        Folder baseFolder = folderService.findById(baseFolderId);
+        Folder updatedBaseFolder = folderService.createNewFolder(baseFolder, newFolderName);
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(updatedBaseFolder);
+    }
+
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<Void> deleteFolder(@PathVariable(name = "id") String folderId){
+        folderService.deleteFolder(folderId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 }

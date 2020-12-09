@@ -1,7 +1,8 @@
 package com.nospace.services;
 
-import com.nospace.Repository.UserRepository;
+import com.nospace.repository.UserRepository;
 import com.nospace.entities.User;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -10,6 +11,11 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    public User getUserByUsername(String username){
+        return userRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("Could not get any user by the username" + username));
+    }
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;

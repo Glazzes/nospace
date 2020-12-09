@@ -1,7 +1,7 @@
 package com.nospace.security.jwt;
 
-import com.google.common.base.Strings;
 import com.nospace.security.UserDetailsImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter{
 
     private final JwtProvider provider;
@@ -23,6 +24,12 @@ public class JwtRequestFilter extends OncePerRequestFilter{
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        final String PATH = request.getRequestURI();
+        if(PATH.equals("/api/account/register")){
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         Cookie[] cookies = request.getCookies();
         String authorizationToken = provider.getCookieValue(cookies, "Authorization");
         String refreshToken = provider.getCookieValue(cookies, "Refresh");

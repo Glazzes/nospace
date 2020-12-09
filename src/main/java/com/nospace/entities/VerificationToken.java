@@ -20,7 +20,6 @@ public class VerificationToken {
     private LocalDateTime expirationDate;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn
     private User user;
 
 }

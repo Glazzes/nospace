@@ -1,14 +1,17 @@
 package com.nospace.controller;
 
-import com.nospace.Repository.FolderRepository;
+import com.nospace.model.NewAccountRequest;
+import com.nospace.repository.FolderRepository;
 import com.nospace.entities.Folder;
 import com.nospace.entities.User;
 import com.nospace.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,7 +22,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins="http://localhost:3000", maxAge=3600)
 public class TestController {
 
     @Autowired private FolderRepository folderRepository;
@@ -31,17 +33,9 @@ public class TestController {
         return Files.walk(folder).mapToLong(f -> f.toFile().length()).sum();
     }
 
-    @GetMapping("/folders")
-    public List<Folder> returnFolders(
-        @RequestParam(name = "folder", required = false) String folderName,
-        Principal principal
-    ){
-        final String finalFolderName = Optional.ofNullable(folderName)
-            .orElseGet(() -> {
-                Optional<User> user =  userService.findByUsername(principal.getName());
-                return user.get().getId()+"-root/";
-            });
-        return folderRepository.findByNameMatchesRegex(finalFolderName);
+    @PostMapping(path= "/test", produces = "application/json")
+    public ResponseEntity<?> testing(@Valid @RequestBody NewAccountRequest request){
+        return ResponseEntity.ok().body(request);
     }
 
     @GetMapping(produces = "application/json")

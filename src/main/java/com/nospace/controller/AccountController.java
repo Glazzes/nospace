@@ -3,59 +3,45 @@ package com.nospace.controller;
 import com.nospace.entities.User;
 import com.nospace.model.NewAccountRequest;
 import com.nospace.services.*;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.io.IOException;
 import java.security.Principal;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/account")
-@CrossOrigin("*")
 public class AccountController {
 
     private final AccountService accountService;
     private final VerificationTokenService verificationTokenService;
-    private final FileServiceImpl fileService;
     private final UserService userService;
+    private final FileService fileService;
 
     public AccountController(
         AccountService accountService,
         VerificationTokenService verificationTokenService,
-        FileServiceImpl fileService,
-        UserService userService
+        UserService userService,
+        FileService fileService
     ) {
         this.accountService = accountService;
         this.verificationTokenService = verificationTokenService;
-        this.fileService = fileService;
         this.userService = userService;
+        this.fileService = fileService;
     }
 
-    @PostMapping(path = "/sign-up", produces = "application/json")
+    @PostMapping(path = "/register", produces = "application/json")
     public ResponseEntity<User> createNewAccount(@Valid @RequestBody NewAccountRequest newAccountRequest){
         User createdUser = accountService.createNewUserAccount(newAccountRequest);
-        return ResponseEntity.ok().body(createdUser);
+        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     @GetMapping(path = "/activate")
     public ResponseEntity<?> activateNewAccount(@RequestParam(name = "token") String token){
         accountService.enableNewUserAccount(token);
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping(path = "/profile-picture", produces = "image/png")
-    public ResponseEntity<byte[]> getProfilePicture(@RequestParam(name = "picture") String pictureName){
-        try{
-            byte[] pictureBytes = fileService.getProfilePicture(pictureName);
-            return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_PNG)
-                .body(pictureBytes);
-        }catch (IOException e){
-            throw new IllegalArgumentException("No picture under that name");
-        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @GetMapping(path = "/me", produces = "application/json")
@@ -65,9 +51,18 @@ public class AccountController {
                    .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping(path = "used-space")
-    public ResponseEntity<Long> getUsedSpace(Principal principal){
-        return ResponseEntity.ok().body(fileService.getUsedSpace(principal));
+    @GetMapping(path = "/profile-picture/{picture}", produces = "image/png")
+    public ResponseEntity<byte[]> getProfilePicture(
+        @PathVariable(name = "picture") String picture
+    ){
+        byte[] profilePicture = fileService.getProfilePicture(picture);
+        return ResponseEntity.ok()
+            .body(profilePicture);
     }
+
+    //@GetMapping(path = "used-space")
+    //public ResponseEntity<Long> getUsedSpace(Principal principal){
+    //    return ResponseEntity.ok().body(fileService.getUsedSpace(principal));
+    //}
 
 }

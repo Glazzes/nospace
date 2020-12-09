@@ -1,5 +1,6 @@
 package com.nospace.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,11 +19,22 @@ public class File {
 
     @Id
     private String id;
+
+    @Column(name = "full_route", nullable = false)
+    private String fullRoute;
+
+    @Column(name = "filename", nullable = false)
     private String filename;
+
+    @Column(name = "file_size", nullable = false)
     private Long fileSize;
+
+    @Column(name = "uploadedAt", nullable = false)
     private LocalDate uploadedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn
-    private Folder storedIn;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "containing_folder_id", nullable = false)
+    @JsonBackReference(value = "folder-files")
+    private Folder containingFolder;
+
 }

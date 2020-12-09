@@ -17,8 +17,13 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: glaze
 
+profile-picture:
+  base-url: http://localhost:8080/api/account/profile-picture/
+  default-picture-url: http://localhost:8080/api/account/profile-picture/default.png
+
 drive:
   base-path: /home/glaze/go/
+  picture-storage: /home/glaze/go/ppf
 
 server:
   servlet:

@@ -1,5 +1,6 @@
 package com.nospace.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.nospace.security.permisions.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,13 +9,15 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
 @Entity
 @Table(name = "users")
 @NoArgsConstructor
-@AllArgsConstructor // A bug within jpa forces the use of all args constructor
+@AllArgsConstructor
 public class User {
 
     @Id
@@ -43,5 +46,9 @@ public class User {
 
     @Column(name = "active", nullable = false)
     private boolean active;
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonManagedReference(value = "user-folders")
+    private List<Folder> folders = new ArrayList<>();
 
 }

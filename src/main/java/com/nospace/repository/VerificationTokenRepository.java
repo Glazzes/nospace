@@ -1,4 +1,4 @@
-package com.nospace.Repository;
+package com.nospace.repository;
 
 import com.nospace.entities.User;
 import com.nospace.entities.VerificationToken;

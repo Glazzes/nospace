@@ -5,12 +5,14 @@ import com.nospace.entities.VerificationToken;
 import com.nospace.exception.InvalidVerificationToken;
 import com.nospace.model.NewAccountRequest;
 import com.nospace.security.permisions.Role;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +24,9 @@ public class AccountService {
     private final EmailService emailService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final FolderService folderService;
+
+    @Value("${profile-picture.default-picture-url}")
+    String DEFAULT_PICTURE_URL;
 
     public AccountService(
             UserService userService,
@@ -49,16 +54,13 @@ public class AccountService {
                 .password(encodedPassword)
                 .email(newAccountRequest.getEmail())
                 .memberSince(LocalDate.now())
-                .profilePicture("default.png")
+                .profilePicture(DEFAULT_PICTURE_URL)
                 .role(Role.USER)
                 .active(false)
+                .folders(new ArrayList<>())
                 .build();
 
         return userService.save(newUser);
-    }
-
-    private void createVerificationTokenForNewUser(User user){
-        verificationTokenService.createNewVerificationToken(user);
     }
 
     private String encodePassword(String rawPassword){
@@ -68,15 +70,12 @@ public class AccountService {
     public User createNewUserAccount(NewAccountRequest newAccountRequest){
         User newUser = saveNewUserToDatabase(newAccountRequest);
         VerificationToken token = verificationTokenService.createNewVerificationToken(newUser);
-
-        String folderName = newUser.getId()+"-root/";
-        folderService.saveFolder(newUser, folderName);
-        folderService.createRootFolderForUser(folderName);
+        folderService.saveRootFolder(newUser);
 
         try{
             emailService.sendAccountVerificationEmail(token);
         }catch (MessagingException e){
-            System.out.println("something went wrong");
+           e.printStackTrace();
         }
 
         return newUser;

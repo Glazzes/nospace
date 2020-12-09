@@ -23,8 +23,8 @@ public class UserDetailsImpl implements UserDetails {
         this.password = user.getPassword();
         this.active = user.isActive();
         this.authorities = user.getRole().getAuthorities();
-    }
 
+    }
     public String getId(){
         return id;
     }
