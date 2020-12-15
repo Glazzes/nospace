@@ -9,11 +9,13 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/login").allowedOrigins("http://localhost:3000").allowCredentials(true);
-        registry.addMapping("/content/**").allowedOrigins("http://localhost:3000").allowCredentials(true);
-        registry.addMapping("/account/**").allowedOrigins("http://localhost:3000").allowCredentials(true);
-	    registry.addMapping("/file/**").allowedOrigins("http://localhost:3000").allowCredentials(true);
-	    registry.addMapping("/auth/**").allowedOrigins("http://localhost:3000").allowCredentials(true);
+        final String FRONTEND = "http://localhost:3000";
+
+        registry.addMapping("/login").allowedOrigins(FRONTEND).allowCredentials(true);
+        registry.addMapping("/content/**").allowedOrigins(FRONTEND).allowCredentials(true);
+        registry.addMapping("/account/**").allowedOrigins(FRONTEND).allowCredentials(true);
+	    registry.addMapping("/files/**").allowedOrigins(FRONTEND).allowCredentials(true);
+	    registry.addMapping("/auth/**").allowedOrigins(FRONTEND).allowCredentials(true);
 	    registry.addMapping("*").allowedOrigins("*");
     }
 

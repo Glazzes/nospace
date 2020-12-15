@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.security.Principal;
 
 @RestController
@@ -37,6 +38,14 @@ public class FolderController {
         Folder updatedBaseFolder = folderService.createNewFolder(baseFolder, newFolderName);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(updatedBaseFolder);
+    }
+
+    @GetMapping(path = "/{id}/download", produces = "application/zip")
+    public ResponseEntity<byte[]> downloadFolder(
+        @PathVariable(name = "id") String folderId
+    ) throws IOException {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(folderService.zipFolderContents(folderId));
     }
 
     @DeleteMapping(path = "/{id}")

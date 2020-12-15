@@ -1,9 +1,8 @@
 package com.nospace.entities;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.nospace.model.NewAccountRequest;
 import com.nospace.security.permisions.Role;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,11 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Builder
 @Entity
 @Table(name = "users")
 @NoArgsConstructor
-@AllArgsConstructor
 public class User {
 
     @Id
@@ -49,6 +46,17 @@ public class User {
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonManagedReference(value = "user-folders")
-    private List<Folder> folders = new ArrayList<>();
+    private List<Folder> folders = new ArrayList<>(0);
 
+    public User(String id, String encodedPassword, String defaultProfilePicture, NewAccountRequest request){
+        this.id = id;
+        this.username = request.getUsername();
+        this.nickname = request.getUsername();
+        this.password = encodedPassword;
+        this.email = request.getEmail();
+        this.memberSince = LocalDate.now();
+        this.role = Role.USER;
+        this.active = false;
+        this.profilePicture = defaultProfilePicture;
+    }
 }

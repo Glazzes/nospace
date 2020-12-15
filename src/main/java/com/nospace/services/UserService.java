@@ -11,14 +11,18 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public User findById(String id){
+        return userRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("No username was found with this id " + id));
+    }
 
     public User getUserByUsername(String username){
         return userRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("Could not get any user by the username" + username));
-    }
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 
     public User save(User newUser){

@@ -5,7 +5,9 @@ import com.nospace.model.NewAccountRequest;
 import com.nospace.services.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.security.Principal;
@@ -19,17 +21,20 @@ public class AccountController {
     private final VerificationTokenService verificationTokenService;
     private final UserService userService;
     private final FileService fileService;
+    private final SpaceUtil spaceUtil;
 
     public AccountController(
         AccountService accountService,
         VerificationTokenService verificationTokenService,
         UserService userService,
-        FileService fileService
+        FileService fileService,
+        SpaceUtil spaceUtil
     ) {
         this.accountService = accountService;
         this.verificationTokenService = verificationTokenService;
         this.userService = userService;
         this.fileService = fileService;
+        this.spaceUtil = spaceUtil;
     }
 
     @PostMapping(path = "/register", produces = "application/json")
@@ -60,9 +65,25 @@ public class AccountController {
             .body(profilePicture);
     }
 
-    //@GetMapping(path = "used-space")
-    //public ResponseEntity<Long> getUsedSpace(Principal principal){
-    //    return ResponseEntity.ok().body(fileService.getUsedSpace(principal));
-    //}
+    @PostMapping(path = "/{id}/profile-picture", consumes = "multipart/form-data")
+    public ResponseEntity<User> updateUserProfilePicture(
+        @PathVariable(name = "id") String id,
+        @RequestPart(name = "file") MultipartFile file
+        ){
+        User user = userService.findById(id);
+        User savedUser = fileService.updateUserProfilePicture(user, file);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                   .body(savedUser);
+    }
+
+    @GetMapping(path = "/used-space")
+    public ResponseEntity<Long> getUserUsedSpace(Principal principal){
+        User user = userService.findByUsername(principal.getName())
+            .orElseThrow(() -> new UsernameNotFoundException("No user was found with username " + principal.getName()));
+        String rootFolder = String.format("%s-%s", user.getId(), "root");
+
+        return ResponseEntity.ok()
+            .body(spaceUtil.getFolderUsedSpace(rootFolder));
+    }
 
 }

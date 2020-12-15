@@ -52,7 +52,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/account/profile-picture/**");
+        web.ignoring().antMatchers("/account/profile-picture/**")
+            .antMatchers(HttpMethod.GET, "/files/{id}/download")
+            .antMatchers(HttpMethod.GET, "/content/{id}/download");
     }
 
     @Bean

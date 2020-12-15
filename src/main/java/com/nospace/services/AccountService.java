@@ -4,15 +4,12 @@ import com.nospace.entities.User;
 import com.nospace.entities.VerificationToken;
 import com.nospace.exception.InvalidVerificationToken;
 import com.nospace.model.NewAccountRequest;
-import com.nospace.security.permisions.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,19 +44,7 @@ public class AccountService {
         String id = UUID.randomUUID().toString().replaceAll("-", "")
             .substring(0, 11);
 
-        User newUser = User.builder()
-                .id(id)
-                .username(newAccountRequest.getUsername())
-                .nickname(newAccountRequest.getUsername())
-                .password(encodedPassword)
-                .email(newAccountRequest.getEmail())
-                .memberSince(LocalDate.now())
-                .profilePicture(DEFAULT_PICTURE_URL)
-                .role(Role.USER)
-                .active(false)
-                .folders(new ArrayList<>())
-                .build();
-
+        User newUser = new User(id, encodedPassword, DEFAULT_PICTURE_URL, newAccountRequest);
         return userService.save(newUser);
     }
 

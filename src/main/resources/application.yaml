@@ -9,7 +9,6 @@ spring:
     username: 1f4c14d004808c
     password: 34a7bbfe76e6e2
   jpa:
-    show-sql: true
     hibernate:
       ddl-auto: update
   datasource:
@@ -17,13 +16,25 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: glaze
 
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+
 profile-picture:
   base-url: http://localhost:8080/api/account/profile-picture/
   default-picture-url: http://localhost:8080/api/account/profile-picture/default.png
 
 drive:
+  zip-temporal-container: /home/glaze/go/temp/
+  max-default-capacity: 1073741824
   base-path: /home/glaze/go/
-  picture-storage: /home/glaze/go/ppf
+  picture-storage: /home/glaze/go/ppf/
 
 server:
   servlet:

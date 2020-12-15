@@ -36,4 +36,17 @@ public class CustomExceptionHandler {
         return new ResponseEntity<ExceptionDetails>(details, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(StorageCapacityExceededException.class)
+    public ResponseEntity<ExceptionDetails> handleStorageExceeded(
+        StorageCapacityExceededException exception
+    ){
+        ExceptionDetails details = ExceptionDetails.builder()
+            .message(exception.getMessage())
+            .thrownAt(LocalDateTime.now())
+            .causedBy(FileNotWrittenException.class.getName())
+            .build();
+
+        return new ResponseEntity<ExceptionDetails>(details, HttpStatus.BAD_REQUEST);
+    }
+
 }
