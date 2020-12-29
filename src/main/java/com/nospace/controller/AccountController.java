@@ -1,5 +1,7 @@
 package com.nospace.controller;
 
+import com.nospace.dtos.UserDto;
+import com.nospace.dtos.mappers.UserMapperImpl;
 import com.nospace.entities.User;
 import com.nospace.model.NewAccountRequest;
 import com.nospace.services.*;
@@ -37,6 +39,16 @@ public class AccountController {
         this.spaceUtil = spaceUtil;
     }
 
+    @GetMapping(path = "/me", produces = "application/json")
+    public ResponseEntity<UserDto> getLoggedUser(Principal principal){
+        Optional<User> currentUser = userService.findByUsername(principal.getName());
+        return currentUser.map(cUser -> {
+            UserDto user = UserMapperImpl.INSTANCE.userToUserDto(cUser);
+            return ResponseEntity.ok().body(user);
+        })
+        .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PostMapping(path = "/register", produces = "application/json")
     public ResponseEntity<User> createNewAccount(@Valid @RequestBody NewAccountRequest newAccountRequest){
         User createdUser = accountService.createNewUserAccount(newAccountRequest);
@@ -47,13 +59,6 @@ public class AccountController {
     public ResponseEntity<?> activateNewAccount(@RequestParam(name = "token") String token){
         accountService.enableNewUserAccount(token);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
-
-    @GetMapping(path = "/me", produces = "application/json")
-    public ResponseEntity<User> getLoggedUser(Principal principal){
-        Optional<User> currentUser = userService.findByUsername(principal.getName());
-        return currentUser.map(cUser -> ResponseEntity.ok().body(cUser))
-                   .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping(path = "/profile-picture/{picture}", produces = "image/png")

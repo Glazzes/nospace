@@ -11,7 +11,6 @@ import java.security.Principal;
 
 @RestController
 @RequestMapping("/content")
-@CrossOrigin("*")
 public class FolderController {
     private final FolderService folderService;
 

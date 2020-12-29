@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Entity
@@ -15,7 +16,10 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class File {
+public class File implements Serializable {
+
+    @Transient
+    private final long serialVersionUid = 1984L;
 
     @Id
     private String id;

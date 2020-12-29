@@ -31,7 +31,7 @@ public class SpaceUtil {
             String message = String.format("Size couldn't be read for location " + route);
             log.info(message);
             e.printStackTrace();
-            return -1;
+            return 0;
         }
     }
 

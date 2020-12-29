@@ -1,5 +1,6 @@
 package com.nospace.security.jwt;
 
+import com.google.common.collect.ImmutableList;
 import com.nospace.security.UserDetailsImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +14,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 @Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter{
@@ -23,18 +25,19 @@ public class JwtRequestFilter extends OncePerRequestFilter{
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final String PATH = request.getRequestURI();
-        if(PATH.equals("/api/account/register")){
-            filterChain.doFilter(request, response);
-            return;
-        }
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        List<String> freeUrls = ImmutableList.of("/api/login", "/api/account/register");
+        return freeUrls.contains(request.getRequestURI());
+    }
 
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Cookie[] cookies = request.getCookies();
         String authorizationToken = provider.getCookieValue(cookies, "Authorization");
         String refreshToken = provider.getCookieValue(cookies, "Refresh");
 
         if(!provider.validateToken(refreshToken)){
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             filterChain.doFilter(request, response);
             return;
         }

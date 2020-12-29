@@ -15,7 +15,6 @@ import java.security.Principal;
 
 @RestController
 @RequestMapping("/some")
-@CrossOrigin("*")
 public class SomeController {
 
     private final JwtProvider provider;

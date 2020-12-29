@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,10 @@ import java.util.List;
 @Entity
 @Table(name = "users")
 @NoArgsConstructor
-public class User {
+public class User implements Serializable {
+
+    @Transient
+    private final long serialVersionUid = 1984L;
 
     @Id
     private String id;

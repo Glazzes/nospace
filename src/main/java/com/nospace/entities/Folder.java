@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +14,10 @@ import java.util.List;
 @Table(name = "folders")
 @Data
 @NoArgsConstructor
-public class Folder {
+public class Folder implements Serializable {
+
+    @Transient
+    private final long serialVersionUid = 1984L;
 
     @Id
     private String id;

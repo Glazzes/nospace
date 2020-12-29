@@ -1,5 +1,6 @@
- package com.nospace.security;
+package com.nospace.security;
 
+import com.google.common.collect.ImmutableList;
 import com.nospace.security.jwt.JwtAuthenticationFilter;
 import com.nospace.security.jwt.JwtProvider;
 import com.nospace.security.jwt.JwtRequestFilter;
@@ -14,11 +15,14 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.List;
 
 @EnableWebSecurity
 @Configuration
-@CrossOrigin("*")
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
@@ -35,7 +39,27 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable()
+        http
+            .cors(httpSecurityCorsConfigurer -> {
+                CorsConfigurationSource source = request -> {
+                    CorsConfiguration configuration = new CorsConfiguration();
+                    configuration.setAllowCredentials(true);
+                    configuration.setAllowedOrigins(ImmutableList.of("http://localhost:3000"));
+                    configuration.setAllowedMethods(ImmutableList.of("GET", "POST", "PATCH", "DELETE"));
+
+                    return configuration;
+                };
+
+                httpSecurityCorsConfigurer.configurationSource(source);
+            })
+            .csrf(httpSecurityCsrfConfigurer -> {
+                List<String> freeUrls = ImmutableList.of("/api/login", "/api/account/register");
+
+                httpSecurityCsrfConfigurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .requireCsrfProtectionMatcher(request -> !freeUrls.contains(request.getRequestURI()));
+            });
+
+        http
             .authorizeRequests()
             .antMatchers(HttpMethod.POST, "/account/register").permitAll()
             .antMatchers(HttpMethod.POST, "/login").permitAll()
