@@ -5,7 +5,7 @@ import com.nospace.entities.VerificationToken;
 import com.nospace.exception.InvalidVerificationToken;
 import com.nospace.model.NewAccountRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
@@ -19,7 +19,7 @@ public class AccountService {
     private final UserService userService;
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final FolderService folderService;
 
     @Value("${profile-picture.default-picture-url}")
@@ -29,7 +29,7 @@ public class AccountService {
             UserService userService,
             VerificationTokenService verificationTokenService,
             EmailService emailService,
-            BCryptPasswordEncoder passwordEncoder,
+            PasswordEncoder passwordEncoder,
             FolderService folderService
     ) {
         this.userService = userService;

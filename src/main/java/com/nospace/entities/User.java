@@ -1,5 +1,6 @@
 package com.nospace.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.nospace.model.NewAccountRequest;
 import com.nospace.security.permisions.Role;
@@ -19,6 +20,7 @@ import java.util.List;
 public class User implements Serializable {
 
     @Transient
+    @JsonIgnoreProperties
     private final long serialVersionUid = 1984L;
 
     @Id

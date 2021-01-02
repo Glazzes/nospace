@@ -1,6 +1,5 @@
 package com.nospace.security;
 
-import com.google.common.collect.ImmutableList;
 import com.nospace.security.jwt.JwtAuthenticationFilter;
 import com.nospace.security.jwt.JwtProvider;
 import com.nospace.security.jwt.JwtRequestFilter;
@@ -15,14 +14,13 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.time.Duration;
 import java.util.List;
 
 @EnableWebSecurity
-@Configuration
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
@@ -40,33 +38,22 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .cors(httpSecurityCorsConfigurer -> {
-                CorsConfigurationSource source = request -> {
-                    CorsConfiguration configuration = new CorsConfiguration();
-                    configuration.setAllowCredentials(true);
-                    configuration.setAllowedOrigins(ImmutableList.of("http://localhost:3000"));
-                    configuration.setAllowedMethods(ImmutableList.of("GET", "POST", "PATCH", "DELETE"));
-
-                    return configuration;
-                };
-
-                httpSecurityCorsConfigurer.configurationSource(source);
-            })
-            .csrf(httpSecurityCsrfConfigurer -> {
-                List<String> freeUrls = ImmutableList.of("/api/login", "/api/account/register");
-
-                httpSecurityCsrfConfigurer.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                    .requireCsrfProtectionMatcher(request -> !freeUrls.contains(request.getRequestURI()));
-            });
-
-        http
+            .csrf().disable()
+            .cors().configurationSource(request -> {
+            CorsConfiguration configuration = new CorsConfiguration();
+            configuration.setAllowCredentials(true);
+            configuration.setAllowedOrigins(List.of("http://localhost:3000", "127.0.0.1:80"));
+            configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "DELETE", "OPTIONS"));
+            configuration.setMaxAge(Duration.ofMinutes(60));
+            configuration.setAllowedHeaders(List.of("*"));
+            return configuration;
+        })
+            .and()
             .authorizeRequests()
-            .antMatchers(HttpMethod.POST, "/account/register").permitAll()
-            .antMatchers(HttpMethod.POST, "/login").permitAll()
-            .antMatchers("/auth/**").permitAll()
-            .antMatchers("/file/**").permitAll()
-            .antMatchers(HttpMethod.GET, "/imgs/**").permitAll()
-            .anyRequest().authenticated();
+            .antMatchers(HttpMethod.POST, "/api/account/register").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/login").permitAll()
+            .anyRequest()
+            .authenticated();
 
         http
             .addFilter(new JwtAuthenticationFilter(authenticationManager(), provider))
@@ -76,13 +63,14 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/account/profile-picture/**")
-            .antMatchers(HttpMethod.GET, "/files/{id}/download")
-            .antMatchers(HttpMethod.GET, "/content/{id}/download");
+        web.ignoring().antMatchers("/api/account/profile-picture/**")
+            .antMatchers(HttpMethod.GET, "/api/files/{id}/download")
+            .antMatchers(HttpMethod.GET, "/imgs/**")
+            .antMatchers(HttpMethod.GET, "/api/content/{id}/download");
     }
 
     @Bean
-    public BCryptPasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder(10);
     }
 }

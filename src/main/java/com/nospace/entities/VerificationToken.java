@@ -1,5 +1,6 @@
 package com.nospace.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 public class VerificationToken implements Serializable {
 
     @Transient
+    @JsonIgnoreProperties
     private final long serialVersionUid = 1984L;
 
     @Id

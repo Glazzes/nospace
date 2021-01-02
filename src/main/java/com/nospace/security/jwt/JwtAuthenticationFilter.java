@@ -27,18 +27,20 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        try{
+        try {
             LoginRequest loginRequest = new ObjectMapper().readValue(
-                    request.getInputStream(), LoginRequest.class
+                request.getInputStream(), LoginRequest.class
             );
 
             Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    loginRequest.getUsername(), loginRequest.getPassword()
+                loginRequest.getUsername(), loginRequest.getPassword()
             );
 
             return manager.authenticate(authentication);
-        }catch (IOException e){
-            throw new RuntimeException("Failure on JwtAuthenticationFilter");
+        } catch (IOException e) {
+            log.info("Error casting the user request to a login request");
+            e.printStackTrace();
+            return null;
         }
     }
 

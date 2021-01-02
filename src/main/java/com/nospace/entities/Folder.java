@@ -1,6 +1,7 @@
 package com.nospace.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.List;
 public class Folder implements Serializable {
 
     @Transient
+    @JsonIgnoreProperties
     private final long serialVersionUid = 1984L;
 
     @Id
