@@ -33,8 +33,11 @@ public class JwtRequestFilter extends OncePerRequestFilter{
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         Cookie[] cookies = request.getCookies();
-        String authorizationToken = provider.getCookieValue(cookies, "Authorization");
-        String refreshToken = provider.getCookieValue(cookies, "Refresh");
+        String authorizationToken = provider
+            .getCookieValue(cookies, CookieType.AUTHORIZATION_TOKEN.getCookieName());
+
+        String refreshToken = provider
+            .getCookieValue(cookies, CookieType.REFRESH_TOKEN.getCookieName());
 
         if(!provider.validateToken(refreshToken)){
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

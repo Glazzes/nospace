@@ -1,56 +1,61 @@
 package com.nospace.security;
 
+import lombok.extern.slf4j.Slf4j;
+
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 
+@Slf4j
 public class SecurityCipher {
-    private static final String SIGNING_KEY = "SomeSuperSecretKey";
-    private static SecretKeySpec secretKey;
-    private static byte[] key;
+    private static final String STRING_KEY = "StephenCrossfire";
+    private static SecretKeySpec secretKeySpec;
+    private static byte[] byteKey;
+    private final static IvParameterSpec ivParameterSpec =
+        new IvParameterSpec("aX2vhI2reKDOhZXP".getBytes(StandardCharsets.US_ASCII));
 
-    public static void setKey(){
-        MessageDigest sha;
+    private static void assignKey(){
         try{
-            key = SIGNING_KEY.getBytes(StandardCharsets.UTF_8);
-            sha = MessageDigest.getInstance("SHA-512");
-            key = sha.digest(key);
-            key = Arrays.copyOf(key, 16);
-            secretKey = new SecretKeySpec(key, "AES");
-        }catch (NoSuchAlgorithmException e){
+            MessageDigest sha512 = MessageDigest.getInstance("SHA-512");
+            byteKey = sha512.digest(STRING_KEY.getBytes(StandardCharsets.US_ASCII));
+            byteKey = Arrays.copyOf(byteKey, 16);
+            secretKeySpec = new SecretKeySpec(byteKey, "AES");
+        }catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public static String encrypt(String textToEncrypt){
-        if(textToEncrypt == null) return null;
-
+    public static String encryptCookieJwtToken(String token){
+        assignKey();
         try{
-            setKey();
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            return Base64.getEncoder().encodeToString(textToEncrypt.getBytes(StandardCharsets.UTF_8));
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
+            byte[] encryptedResult = cipher.doFinal(token.getBytes(StandardCharsets.US_ASCII));
+            return Base64.getEncoder().encodeToString(encryptedResult);
         }catch (Exception e){
+            log.info("Security cipher was not able to encrypt cookie data");
             e.printStackTrace();
+            throw new IllegalStateException("Incorrect algorithm or padding to perform encryption");
         }
-        return null;
     }
 
-    public static String decrypt(String textToDecrypt){
-        if(textToDecrypt == null) return null;
+    public static String decryptCookieJWtToken(String encryptedCookieToken){
+        assignKey();
         try{
-            setKey();
+            byte[] decryptedCookie = Base64.getDecoder().decode(encryptedCookieToken);
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            return new String(cipher.doFinal(Base64.getDecoder().decode(textToDecrypt.getBytes())));
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+            return new String(cipher.doFinal(decryptedCookie), StandardCharsets.US_ASCII);
+
         }catch (Exception e){
+            log.info("Security cipher was not able to decrypt cookie data");
             e.printStackTrace();
+            throw new IllegalStateException("Incorrect algorithm or padding to perform encryption");
         }
-        return null;
     }
 
 }

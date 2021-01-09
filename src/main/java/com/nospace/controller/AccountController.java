@@ -39,6 +39,19 @@ public class AccountController {
         this.spaceUtil = spaceUtil;
     }
 
+    @PostMapping(path = "/register", produces = "application/json")
+    public ResponseEntity<UserDto> createNewAccount(@Valid @RequestBody NewAccountRequest newAccountRequest){
+        User createdUser = accountService.createNewUserAccount(newAccountRequest);
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(UserMapperImpl.INSTANCE.userToUserDto(createdUser));
+    }
+
+    @GetMapping(path = "/activate")
+    public ResponseEntity<?> activateNewAccount(@RequestParam(name = "token") String token){
+        accountService.enableNewUserAccount(token);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     @GetMapping(path = "/me", produces = "application/json")
     public ResponseEntity<UserDto> getLoggedUser(Principal principal){
         Optional<User> currentUser = userService.findByUsername(principal.getName());
@@ -46,19 +59,18 @@ public class AccountController {
             UserDto user = UserMapperImpl.INSTANCE.userToUserDto(cUser);
             return ResponseEntity.ok().body(user);
         })
-        .orElseGet(() -> ResponseEntity.notFound().build());
+                   .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping(path = "/register", produces = "application/json")
-    public ResponseEntity<User> createNewAccount(@Valid @RequestBody NewAccountRequest newAccountRequest){
-        User createdUser = accountService.createNewUserAccount(newAccountRequest);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
-    }
-
-    @GetMapping(path = "/activate")
-    public ResponseEntity<?> activateNewAccount(@RequestParam(name = "token") String token){
-        accountService.enableNewUserAccount(token);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @PostMapping(path = "/edit/{id}/profile-picture", consumes = "multipart/form-data")
+    public ResponseEntity<User> updateUserProfilePicture(
+        @PathVariable(name = "id") String id,
+        @RequestPart(name = "file") MultipartFile file
+    ){
+        User user = userService.findById(id);
+        User savedUser = fileService.updateUserProfilePicture(user, file);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                   .body(savedUser);
     }
 
     @GetMapping(path = "/profile-picture/{picture}", produces = "image/png")
@@ -68,17 +80,6 @@ public class AccountController {
         byte[] profilePicture = fileService.getProfilePicture(picture);
         return ResponseEntity.ok()
             .body(profilePicture);
-    }
-
-    @PostMapping(path = "/{id}/profile-picture", consumes = "multipart/form-data")
-    public ResponseEntity<User> updateUserProfilePicture(
-        @PathVariable(name = "id") String id,
-        @RequestPart(name = "file") MultipartFile file
-        ){
-        User user = userService.findById(id);
-        User savedUser = fileService.updateUserProfilePicture(user, file);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                   .body(savedUser);
     }
 
     @GetMapping(path = "/used-space")

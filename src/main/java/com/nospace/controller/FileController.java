@@ -29,17 +29,6 @@ public class FileController {
             .body(newFiles);
     }
 
-    @DeleteMapping(path= "/{id}")
-    public ResponseEntity<Void> deleteFileById(@PathVariable(name = "id") String fileId){
-        HttpHeaders allowDelete = new HttpHeaders();
-        allowDelete.add("Access-Control-Allow-Methods", "DELETE");
-
-        fileService.deleteFile(fileId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT)
-            .headers(allowDelete)
-            .build();
-    }
-
     @GetMapping(path = "/{id}/download")
     public ResponseEntity<byte[]> downloadFile(@PathVariable(name = "id") String id){
         File fileToDownload = fileService.findById(id);
@@ -51,6 +40,17 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.OK)
             .headers(headers)
             .body(fileService.prepareFileForDownload(fileToDownload));
+    }
+
+    @DeleteMapping(path= "/{id}")
+    public ResponseEntity<Void> deleteFileById(@PathVariable(name = "id") String fileId){
+        HttpHeaders allowDelete = new HttpHeaders();
+        allowDelete.add("Access-Control-Allow-Methods", "DELETE");
+
+        fileService.deleteFile(fileId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                   .headers(allowDelete)
+                   .build();
     }
 
 }

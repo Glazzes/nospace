@@ -18,16 +18,6 @@ public class FolderController {
         this.folderService = folderService;
     }
 
-    @GetMapping(path = "/my-content", produces = "application/json")
-    public ResponseEntity<Folder> getUserFolders(
-        @RequestParam(name = "depth") long depth,
-        @RequestParam(name = "name") String name,
-        Principal principal
-    ){
-        Folder content = folderService.findByDepthAndNameAndOwner(depth, name, principal.getName());
-        return ResponseEntity.ok().body(content);
-    }
-
     @PostMapping(path = "/new", produces = "application/json")
     public ResponseEntity<Folder> createNewFolder(
         @RequestParam(name = "baseId") String baseFolderId,
@@ -37,6 +27,16 @@ public class FolderController {
         Folder updatedBaseFolder = folderService.createNewFolder(baseFolder, newFolderName);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(updatedBaseFolder);
+    }
+
+    @GetMapping(path = "/my-content", produces = "application/json")
+    public ResponseEntity<Folder> getUserFolders(
+        @RequestParam(name = "depth") long depth,
+        @RequestParam(name = "name") String name,
+        Principal principal
+    ){
+        Folder content = folderService.findByDepthAndNameAndOwner(depth, name, principal.getName());
+        return ResponseEntity.ok().body(content);
     }
 
     @GetMapping(path = "/{id}/download", produces = "application/zip")

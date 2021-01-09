@@ -66,6 +66,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers("/api/account/profile-picture/**")
             .antMatchers(HttpMethod.GET, "/api/files/{id}/download")
             .antMatchers(HttpMethod.GET, "/imgs/**")
+            .antMatchers(HttpMethod.GET, "/auth/**")
             .antMatchers(HttpMethod.GET, "/api/content/{id}/download");
     }
 
