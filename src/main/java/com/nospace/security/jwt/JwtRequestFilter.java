@@ -1,6 +1,7 @@
 package com.nospace.security.jwt;
 
 import com.google.common.collect.ImmutableList;
+import com.nospace.security.CookieType;
 import com.nospace.security.UserDetailsImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

@@ -1,10 +1,13 @@
 package com.nospace.controller;
 
+import com.nospace.dtos.EditableUserDto;
 import com.nospace.dtos.UserDto;
+import com.nospace.dtos.mappers.EditableUserMapper;
 import com.nospace.dtos.mappers.UserMapperImpl;
 import com.nospace.entities.User;
 import com.nospace.model.NewAccountRequest;
 import com.nospace.services.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,6 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/account")
+@RequiredArgsConstructor
 public class AccountController {
 
     private final AccountService accountService;
@@ -24,20 +28,6 @@ public class AccountController {
     private final UserService userService;
     private final FileService fileService;
     private final SpaceUtil spaceUtil;
-
-    public AccountController(
-        AccountService accountService,
-        VerificationTokenService verificationTokenService,
-        UserService userService,
-        FileService fileService,
-        SpaceUtil spaceUtil
-    ) {
-        this.accountService = accountService;
-        this.verificationTokenService = verificationTokenService;
-        this.userService = userService;
-        this.fileService = fileService;
-        this.spaceUtil = spaceUtil;
-    }
 
     @PostMapping(path = "/register", produces = "application/json")
     public ResponseEntity<UserDto> createNewAccount(@Valid @RequestBody NewAccountRequest newAccountRequest){
@@ -58,8 +48,16 @@ public class AccountController {
         return currentUser.map(cUser -> {
             UserDto user = UserMapperImpl.INSTANCE.userToUserDto(cUser);
             return ResponseEntity.ok().body(user);
-        })
-                   .orElseGet(() -> ResponseEntity.notFound().build());
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping(value = "/me/editable", produces = "application/json")
+    public ResponseEntity<EditableUserDto> getEditableUser(Principal principal){
+        return userService.findByUsername(principal.getName())
+            .map(cUser -> {
+                EditableUserDto user = EditableUserMapper.mapper.userToUserDto(cUser);
+                return ResponseEntity.ok().body(user);
+            }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping(path = "/edit/{id}/profile-picture", consumes = "multipart/form-data")

@@ -1,4 +1,4 @@
-package com.nospace.security.jwt;
+package com.nospace.security;
 
 public enum CookieType {
     AUTHORIZATION_TOKEN("Authorization", 900),

@@ -36,6 +36,7 @@ public class SecurityCipher {
             cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
             byte[] encryptedResult = cipher.doFinal(token.getBytes(StandardCharsets.US_ASCII));
             return Base64.getEncoder().encodeToString(encryptedResult);
+
         }catch (Exception e){
             log.info("Security cipher was not able to encrypt cookie data");
             e.printStackTrace();

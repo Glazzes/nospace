@@ -1,5 +1,6 @@
 package com.nospace.security.jwt;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nospace.security.CookieType;
 import com.nospace.security.LoginRequest;
 import com.nospace.security.UserDetailsImpl;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,7 @@
 package com.nospace.security.jwt;
 
 import com.nospace.entities.User;
+import com.nospace.security.CookieType;
 import com.nospace.security.SecurityCipher;
 import com.nospace.security.UserDetailsImpl;
 import com.nospace.services.UserService;
