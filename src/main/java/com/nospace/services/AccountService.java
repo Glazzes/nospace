@@ -1,43 +1,36 @@
 package com.nospace.services;
 
+import com.nospace.dtos.UserDto;
+import com.nospace.dtos.mappers.UserMapperImpl;
 import com.nospace.entities.User;
 import com.nospace.entities.VerificationToken;
 import com.nospace.exception.InvalidVerificationToken;
+import com.nospace.model.EditUserRequest;
 import com.nospace.model.NewAccountRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class AccountService {
+
+    @Value("${profile-picture.default-picture-url}")
+    String DEFAULT_PICTURE_URL;
 
     private final UserService userService;
     private final VerificationTokenService verificationTokenService;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final FolderService folderService;
-
-    @Value("${profile-picture.default-picture-url}")
-    String DEFAULT_PICTURE_URL;
-
-    public AccountService(
-            UserService userService,
-            VerificationTokenService verificationTokenService,
-            EmailService emailService,
-            PasswordEncoder passwordEncoder,
-            FolderService folderService
-    ) {
-        this.userService = userService;
-        this.verificationTokenService = verificationTokenService;
-        this.emailService = emailService;
-        this.passwordEncoder = passwordEncoder;
-        this.folderService = folderService;
-    }
 
     private User saveNewUserToDatabase(NewAccountRequest newAccountRequest){
         String encodedPassword = encodePassword(newAccountRequest.getPassword());
@@ -52,6 +45,7 @@ public class AccountService {
         return passwordEncoder.encode(rawPassword);
     }
 
+    @Transactional
     public User createNewUserAccount(NewAccountRequest newAccountRequest){
         User newUser = saveNewUserToDatabase(newAccountRequest);
         VerificationToken token = verificationTokenService.createNewVerificationToken(newUser);
@@ -66,6 +60,7 @@ public class AccountService {
         return newUser;
     }
 
+    @Transactional
     public void enableNewUserAccount(String token){
         Optional<VerificationToken> existingToken = verificationTokenService.findVerificationTokenByToken(token);
         existingToken.ifPresentOrElse(
@@ -82,6 +77,23 @@ public class AccountService {
                 },
                 () -> {throw new InvalidVerificationToken("This token does not exists");}
         );
+    }
+
+    public UserDto editAccount(EditUserRequest request, String username){
+        User user = userService.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("No user with susername " + username));
+        user.setNickname(request.getUsername());
+        String newPassword;
+
+        if(request.getPassword().equals("")){
+            newPassword = user.getPassword();
+        }else{
+            newPassword = passwordEncoder.encode(request.getPassword());
+        }
+
+        user.setPassword(newPassword);
+
+        return UserMapperImpl.INSTANCE.userToUserDto(userService.save(user));
     }
 
 }

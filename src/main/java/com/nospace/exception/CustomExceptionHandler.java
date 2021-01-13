@@ -49,4 +49,30 @@ public class CustomExceptionHandler {
         return new ResponseEntity<ExceptionDetails>(details, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(FolderNotFoundException.class)
+    public ResponseEntity<ExceptionDetails> handleFolderNotFoundException(
+        FolderNotFoundException exception
+    ){
+        ExceptionDetails details = ExceptionDetails.builder()
+            .message(exception.getMessage())
+            .thrownAt(LocalDateTime.now())
+            .causedBy(FolderNotFoundException.class.getName())
+            .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(details);
+    }
+
+    @ExceptionHandler(RepresentationalFileNotFoundExcepion.class)
+    public ResponseEntity<ExceptionDetails> handleRepresentationalFileNotFoundExcepion(
+        RepresentationalFileNotFoundExcepion excepion
+    ){
+        ExceptionDetails details = ExceptionDetails.builder()
+            .message(excepion.getMessage())
+            .thrownAt(LocalDateTime.now())
+            .causedBy(RepresentationalFileNotFoundExcepion.class.getName())
+            .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(details);
+    }
+
 }

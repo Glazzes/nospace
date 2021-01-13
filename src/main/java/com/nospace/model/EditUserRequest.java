@@ -16,9 +16,7 @@ public class EditUserRequest {
     @UsernameAlreadyInUse
     private String username;
 
-    @NotBlank(message = "Password must not be blank")
     @NotNull
-    @Size(min = 8, max = 100, message = "Password must be between 3 and 100 characters long")
     private String password;
 
 }

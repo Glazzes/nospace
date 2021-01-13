@@ -1,5 +1,6 @@
 package com.nospace.controller;
 
+import com.nospace.dtos.FolderDto;
 import com.nospace.entities.Folder;
 import com.nospace.services.FolderService;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,17 @@ public class FolderController {
     ){
         Folder content = folderService.findByDepthAndNameAndOwner(depth, name, principal.getName());
         return ResponseEntity.ok().body(content);
+    }
+
+    @PostMapping(path = "{folderId}/rename", produces = "application/json")
+    public ResponseEntity<FolderDto> renameFolder(
+        @PathVariable(name = "folderId") String folderId,
+        @RequestParam(name = "folderName") String newFolderName
+    ){
+        FolderDto renamedFolder = folderService.renameFolder(folderId, newFolderName);
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(renamedFolder);
     }
 
     @GetMapping(path = "/{id}/download", produces = "application/zip")

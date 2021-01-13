@@ -1,30 +1,38 @@
 package com.nospace.services;
 
+import com.nospace.dtos.FolderDto;
+import com.nospace.dtos.mappers.FolderMapperImpl;
+import com.nospace.entities.File;
+import com.nospace.exception.FolderNotFoundException;
+import com.nospace.repository.FileRepository;
 import com.nospace.repository.FolderRepository;
 import com.nospace.entities.Folder;
 import com.nospace.entities.User;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Future;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FolderService {
+
     private final FolderRepository folderRepository;
+    private final FileRepository fileRepository;
     private final UserService userService;
-    public FolderService(FolderRepository folderRepository, UserService userService) {
-        this.folderRepository = folderRepository;
-        this.userService = userService;
-    }
 
     @Value("${drive.base-path}")
     private String BASE_PATH;
@@ -86,6 +94,48 @@ public class FolderService {
         folderRepository.delete(folderToDelete);
     }
 
+    public FolderDto renameFolder(String folderId, String newFolderName){
+        Folder folder = folderRepository.findById(folderId)
+            .orElseThrow(() -> new FolderNotFoundException("Could not find folder with id => "+ folderId));
+
+        updateFilePath(folder.getFiles(), folder.getFolderName(), newFolderName);
+
+        folder.setFolderName(newFolderName);
+        folder.setSubFolders(new ArrayList<>(0));
+        folder.setFiles(new ArrayList<>(0));
+
+        String newFolderRoute = folder.getFullRoute().replaceAll("/.*/$",
+            String.format("/%s/", newFolderName));
+        moveFolder(folder.getFullRoute(), newFolderRoute);
+
+        folder.setFullRoute(newFolderRoute);
+        folderRepository.save(folder);
+        return FolderMapperImpl.mapper.folderToFolderDto(folder);
+    }
+
+    @Async
+    private void moveFolder(String oldRoute, String newRoute){
+        Path source = Paths.get(BASE_PATH, oldRoute);
+        Path destination = Paths.get(BASE_PATH, newRoute);
+        try{
+            Files.move(source, destination);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+    @Async
+    private void updateFilePath(List<File> files, String oldName, String newName){
+        files.stream()
+            .map(file -> {
+                String newRoute = file.getFullRoute()
+                    .replace(oldName, newName);
+                file.setFullRoute(newRoute);
+                return file;
+            })
+            .forEach(fileRepository::save);
+    }
+
     @Async
     private void deletePhysicalFolder(String folderToDelete){
         Path folder = Paths.get(BASE_PATH, folderToDelete);
@@ -96,6 +146,7 @@ public class FolderService {
         }
     }
 
+    @Async
     public byte[] zipFolderContents(String folderId) throws IOException{
         String zipFilename = UUID.randomUUID().toString().toString() + ".zip";
         Folder folder = folderRepository.findById(folderId)

@@ -1,10 +1,14 @@
 package com.nospace.services;
 
+import com.nospace.dtos.UserDto;
+import com.nospace.dtos.mappers.UserMapperImpl;
 import com.nospace.entities.File;
 import com.nospace.entities.Folder;
 import com.nospace.entities.User;
+import com.nospace.exception.RepresentationalFileNotFoundExcepion;
 import com.nospace.exception.StorageCapacityExceededException;
 import com.nospace.repository.FileRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -12,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FileService {
 
     @Value("${drive.picture-storage}")
@@ -41,16 +47,8 @@ public class FileService {
     private final UserService userService;
     private final SpaceUtil spaceUtil;
 
-    public FileService(
-        FolderService folderService,
-        FileRepository fileRepository,
-        UserService userService,
-        SpaceUtil spaceUtil
-    ){
-        this.folderService = folderService;
-        this.fileRepository = fileRepository;
-        this.userService = userService;
-        this.spaceUtil = spaceUtil;
+    public File save(File file){
+        return fileRepository.save(file);
     }
 
     public File findById(String id){
@@ -84,6 +82,7 @@ public class FileService {
 
     }
 
+    @Transactional
     private File saveFileToDb(Folder baseFolder, String fileName, long size){
         String id = UUID.randomUUID().toString().replaceAll("-", "")
             .substring(0, 11);
@@ -114,6 +113,32 @@ public class FileService {
         }
     }
 
+    public File renameFile(String fileId, String filename){
+        File file = fileRepository.findById(fileId)
+            .orElseThrow(() -> new RepresentationalFileNotFoundExcepion("No file found with id "+fileId));
+
+        String newFileRoute = file.getFullRoute().replaceAll("/.*$", "/"+filename);
+        moveFile(file.getFullRoute(), newFileRoute);
+
+        file.setFilename(filename);
+        file.setFullRoute(newFileRoute);
+        fileRepository.save(file);
+        return file;
+    }
+
+    @Async
+    private void moveFile(String oldRoute, String newRoute){
+        Path source = Paths.get(BASE_PATH, oldRoute);
+        Path destination = Paths.get(BASE_PATH, newRoute);
+        try{
+            Files.move(source, destination);
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+
+
+    @Async
     public byte[] getProfilePicture(String pictureName){
         Path pictureLocation = Paths.get(PICTURE_STORAGE, pictureName);
         try{
@@ -137,6 +162,7 @@ public class FileService {
         return fileToDelete;
     }
 
+    @Async
     private void deleteFileFromDisk(File deletedFile){
         Path fileLocation = Paths.get(BASE_PATH, deletedFile.getFullRoute());
         try{
@@ -151,6 +177,7 @@ public class FileService {
             e.printStackTrace();
         }
     }
+
 
     public byte[] prepareFileForDownload(File fileToDownload){
         Path fileLocation = Paths.get(BASE_PATH, fileToDownload.getFullRoute());
@@ -178,12 +205,12 @@ public class FileService {
         }
     }
 
-    public User updateUserProfilePicture(User user, MultipartFile file){
+    public UserDto updateUserProfilePicture(User user, MultipartFile file){
         String newFilename = renameFile(file.getOriginalFilename());
         saveFileToDisk(PICTURE_STORAGE, newFilename, file);
         user.setProfilePicture(PICTURE_URL+newFilename);
         user.setFolders(new ArrayList<>());
-        return userService.save(user);
+        return UserMapperImpl.INSTANCE.userToUserDto(userService.save(user));
     }
 
     private String renameFile(String filename){

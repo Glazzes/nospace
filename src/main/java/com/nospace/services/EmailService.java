@@ -2,6 +2,7 @@ package com.nospace.services;
 
 import com.nospace.entities.User;
 import com.nospace.entities.VerificationToken;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -18,15 +19,11 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSenderImpl mailSender;
     private final TemplateEngine templateEngine;
-
-    public EmailService(JavaMailSenderImpl mailSender, TemplateEngine templateEngine){
-        this.mailSender = mailSender;
-        this.templateEngine = templateEngine;
-    }
 
     private Map<String, String> prepareVerificationEmailContent(VerificationToken verificationToken){
         User user = verificationToken.getUser();

@@ -5,6 +5,7 @@ import com.nospace.dtos.UserDto;
 import com.nospace.dtos.mappers.EditableUserMapper;
 import com.nospace.dtos.mappers.UserMapperImpl;
 import com.nospace.entities.User;
+import com.nospace.model.EditUserRequest;
 import com.nospace.model.NewAccountRequest;
 import com.nospace.services.*;
 import lombok.RequiredArgsConstructor;
@@ -51,24 +52,26 @@ public class AccountController {
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping(value = "/me/editable", produces = "application/json")
-    public ResponseEntity<EditableUserDto> getEditableUser(Principal principal){
-        return userService.findByUsername(principal.getName())
-            .map(cUser -> {
-                EditableUserDto user = EditableUserMapper.mapper.userToUserDto(cUser);
-                return ResponseEntity.ok().body(user);
-            }).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @PostMapping(path = "/edit/{id}/profile-picture", consumes = "multipart/form-data")
-    public ResponseEntity<User> updateUserProfilePicture(
-        @PathVariable(name = "id") String id,
-        @RequestPart(name = "file") MultipartFile file
+    @PostMapping(path = "/edit/profile-picture", consumes = "multipart/form-data", produces = "application/json")
+    public ResponseEntity<UserDto> updateUserProfilePicture(
+        @RequestPart(name = "file") MultipartFile file,
+        Principal principal
     ){
-        User user = userService.findById(id);
-        User savedUser = fileService.updateUserProfilePicture(user, file);
+        User user = userService.findByUsername(principal.getName())
+            .orElseThrow(() -> new UsernameNotFoundException("No user found with username "+ principal.getName()));
+        UserDto savedUser = fileService.updateUserProfilePicture(user, file);
         return ResponseEntity.status(HttpStatus.CREATED)
                    .body(savedUser);
+    }
+
+    @PostMapping(path = "/edit", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<UserDto> editAccountDetails(
+        @Valid @RequestBody EditUserRequest request,
+        Principal principal
+    ){
+        UserDto editedUser = accountService.editAccount(request, principal.getName());
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(editedUser);
     }
 
     @GetMapping(path = "/profile-picture/{picture}", produces = "image/png")

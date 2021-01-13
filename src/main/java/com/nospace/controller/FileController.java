@@ -29,6 +29,16 @@ public class FileController {
             .body(newFiles);
     }
 
+    @PostMapping(path = "/{fileId}/rename")
+    public ResponseEntity<File> renameFile(
+        @PathVariable(name = "fileId") String fileId,
+        @RequestParam(name = "filename") String filename
+    ){
+        File renamedFile = fileService.renameFile(fileId, filename);
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(renamedFile);
+    }
+
     @GetMapping(path = "/{id}/download")
     public ResponseEntity<byte[]> downloadFile(@PathVariable(name = "id") String id){
         File fileToDownload = fileService.findById(id);

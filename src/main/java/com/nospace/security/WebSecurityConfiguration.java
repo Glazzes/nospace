@@ -50,8 +50,8 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         })
             .and()
             .authorizeRequests()
-            .antMatchers(HttpMethod.POST, "/api/account/register").permitAll()
-            .antMatchers(HttpMethod.POST, "/api/login").permitAll()
+            .antMatchers(HttpMethod.POST, "/account/register").permitAll()
+            .antMatchers(HttpMethod.POST, "/login").permitAll()
             .anyRequest()
             .authenticated();
 
@@ -63,11 +63,11 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/api/account/profile-picture/**")
-            .antMatchers(HttpMethod.GET, "/api/files/{id}/download")
+        web.ignoring().antMatchers("/account/profile-picture/**")
+            .antMatchers(HttpMethod.GET, "/files/{id}/download")
+            .antMatchers(HttpMethod.GET, "/content/{id}/download")
             .antMatchers(HttpMethod.GET, "/imgs/**")
-            .antMatchers(HttpMethod.GET, "/auth/**")
-            .antMatchers(HttpMethod.GET, "/api/content/{id}/download");
+            .antMatchers(HttpMethod.GET, "/auth/**");
     }
 
     @Bean
